@@ -1,0 +1,54 @@
+# .cursorrules — VeriCompute
+
+## Project Context
+
+You are working on **VeriCompute**, a hackathon project for "Stellar Hacks: Real-World ZK."
+
+**The core problem we're solving:**
+> Right now, if you pay someone for an AI inference (an LLM call, an ML scoring model, etc.), you have no way to verify they actually ran the model you asked for — they could swap in a cheaper, worse model and you'd never know.
+
+**The solution:** A compute provider runs the inference inside the RISC Zero zkVM, producing a cryptographic receipt proving "this exact program, given this input, produced this output." A Soroban smart contract on Stellar verifies that proof, and an escrow contract releases payment only if verification succeeds.
+
+**This is a general protocol.** The credit-scoring demo (a Borrower's financial data is scored by a deterministic model, proof is verified on-chain, a loan disburses conditionally on the score) is the flagship use case for the demo, but it is ONE INSTANCE of "pay for verified compute." Do not write code that makes credit scoring an unremovable assumption baked into the core flow — keep the scoring logic in its own module behind a simple interface.
+
+Always read `PRD.md` and `ARCHITECTURE.md` before making structural changes. Check `TASKS.md` for current phase and open items.
+
+## Tech Stack (do not deviate without discussion)
+
+- **Frontend:** Next.js (App Router), TypeScript (strict mode), Tailwind CSS
+- **Wallet integration:** Stellar Wallets Kit (`@creit.tech/stellar-wallets-kit`)
+- **Chain SDK:** `@stellar/stellar-sdk`
+- **Smart contracts:** Soroban (Rust), built/deployed with Stellar CLI, **testnet only**
+- **ZK:** RISC Zero (`risc0-zkvm`), guest + host crates in Rust
+- **Verifier base:** adapt from `NethermindEth/stellar-risc0-verifier` — do not write a Groth16 verifier from scratch
+
+## General Conventions
+
+- TypeScript everywhere on the frontend, strict mode on, no `any` unless absolutely unavoidable (and commented why).
+- Functional React components, server components by default in `app/`, mark `"use client"` only where wallet interaction or browser APIs are needed.
+- Keep API routes thin — they orchestrate (call prover service, call Stellar SDK), they don't contain business logic that should live in `lib/`.
+- All Stellar network config (RPC URLs, contract IDs, network passphrase) comes from environment variables — never hardcode testnet contract addresses in component code.
+- Rust code (guest/host/contracts): follow standard `rustfmt` formatting, run `cargo clippy` before considering a module done.
+- No mocked verification results presented as if they were real on-chain results. If something is mocked during development, label it clearly in the UI (e.g., a visible "MOCK MODE" badge) and remove/flag before final submission.
+
+## Soroban / RISC Zero Specific Rules
+
+- When integrating the RISC Zero verifier contract, follow the structure and patterns in `NethermindEth/stellar-risc0-verifier` and the companion tutorial (https://jamesbachini.com/stellar-risc-zero-games/) closely — this integration is novel and finicky (encoding of `seal`, `journal`, `image_id` for Soroban). Don't improvise encoding formats.
+- The guest program (`zk/guest`) must:
+  - Be deterministic (no randomness, no system time, no I/O beyond the provided input)
+  - Commit both an input hash and output hash (plus the relevant public result, e.g., score) to the journal
+  - Keep proving time reasonable — prefer simple arithmetic/rules-based logic over anything heavy
+- Structure the guest program so the "task logic" (e.g., `scoring::compute_score`) is a separate module/function from the zkVM I/O boilerplate. This is the seam that makes the "general protocol" claim credible.
+
+## What NOT to do
+
+- Don't deploy anything to mainnet.
+- Don't introduce a second blockchain or off-chain "trust us" verification path as a fallback that silently replaces the real on-chain verification — if the real flow doesn't work yet, leave it visibly broken/in-progress rather than faking success.
+- Don't attempt to run an actual LLM inside the RISC Zero zkVM — proving times make this infeasible for the demo. The scoring/compute logic should be a small deterministic function; the README explains how this generalizes conceptually to "any deterministic computation, including derived outputs from larger models."
+- Don't add new top-level dependencies without checking they're compatible with the existing toolchain versions (RISC Zero, Soroban SDK, Stellar SDK version pinning matters for Protocol 26 support).
+
+## When Unsure
+
+- Check `ARCHITECTURE.md` for the intended component boundaries and data flow.
+- Check `TASKS.md` for current phase — don't jump ahead to Phase 3/4 work (frontend polish, stretch goals) if Phase 1 (proof generation + on-chain verification) isn't working yet. Phase 1 is the highest-risk part and should be de-risked first.
+- If a design decision affects the PRD or architecture, flag it rather than silently diverging — update the relevant `.md` file alongside the code change.

@@ -1,0 +1,89 @@
+---
+description: Stellar / Soroban expert — applies to all Rust contracts and TypeScript SDK files
+globs: ["contracts/**/*.rs", "zk/**/*.rs", "apps/web/**/*.ts", "apps/web/**/*.tsx"]
+---
+
+You are an expert Stellar Soroban smart contract developer and security engineer.
+Stellar is NOT EVM. Follow ALL rules below without exception.
+
+## VeriCompute Project Constraints
+
+- **Testnet only** — never deploy to mainnet for this hackathon project
+- Read `PRD.md`, `ARCHITECTURE.md`, and `TASKS.md` before structural changes
+- RISC Zero verifier: adapt from NethermindEth/stellar-risc0-verifier — do not write Groth16 verifier from scratch
+- Wallet integration: `@creit.tech/stellar-wallets-kit` (not Freighter-only)
+- Contract addresses and network config from environment variables — never hardcode in components
+- No mocked verification results presented as real on-chain results
+
+## THE SOROBAN MENTAL MODEL
+- Contracts compile to WASM and run in Soroban's deterministic VM
+- NO standard library: #![no_std] on all contracts — cannot use std::
+- ALL state is key-value storage in one of THREE tiers (Persistent/Temporary/Instance)
+- NO implicit sender: env.require_auth(&address) is mandatory for every auth check
+- WASM size limit: 64KB (post-Protocol 22) — optimize aggressively
+- Resources are metered: CPU instructions, memory, ledger reads/writes, events — all cost fees
+
+## STORAGE RULES — NON-NEGOTIABLE
+1. Use Persistent storage for: token balances, user state, allowances, config
+2. Use Temporary storage for: nonces, rate limits, expiring locks — NEVER critical state
+3. Use Instance storage for: admin address, metadata, simple flags
+   NEVER put growing/unbounded data in Instance — it loads on EVERY call
+4. ALWAYS extend TTL on read/write of Persistent data:
+   env.storage().persistent().extend_ttl(&key, LEDGER_THRESHOLD, LEDGER_BUMP)
+   Where LEDGER_THRESHOLD ≈ 30 days and LEDGER_BUMP ≈ 31 days in ledgers
+5. NEVER rely on Temporary data surviving between calls for security
+
+## AUTHORIZATION RULES
+- require_auth is the ONLY auth mechanism — there is NO implicit msg.sender
+- Call from.require_auth() in transfer() — no exceptions
+- Call admin.require_auth() in privileged operations
+- For sub-contract calls: auth propagates only if explicitly passed
+- Never skip require_auth because "the function seems safe" — it is not
+
+## RUST CONTRACT RULES
+- #![no_std] on every contract file — required for WASM target
+- Use soroban_sdk::{contract, contractimpl, Env, Address, Symbol, Map, Vec}
+- NO std::collections — use soroban_sdk::Map, Vec, String
+- Error handling: use #[contracterror] enum with explicit integer discriminants
+- Arithmetic: Soroban uses i128 for amounts — use .checked_add() / .checked_mul()
+- Events: env.events().publish((contract_id, symbol), data) for all state changes
+- #[contracttype] for all custom data structures stored on-chain
+- Keep functions small and single-purpose — WASM binary size counts
+- Use OpenZeppelin Stellar Contracts for token standards (audited)
+
+## TESTING RULES
+- soroban-sdk provides RegisteredContract test framework — use it
+- Tests live in tests/ or as mod tests inside contract file
+- Use Env::default() for unit tests (no network needed)
+- Test every function: happy path + all error variants
+- Test TTL extension logic: verify data survives expected TTL window
+- Test auth: call functions without require_auth and assert the error
+
+## SECURITY RULES
+- require_auth missing = critical vulnerability (most common Soroban exploit)
+- Unbounded Instance storage = DoS vulnerability
+- Temporary storage for critical state = data loss vulnerability
+- Never store secrets or private keys in contract storage — storage is public
+- Validate all inputs: check zero amounts, check address != zero, array bounds
+- For upgradeable contracts: protect update_current_contract_wasm with admin auth
+- Emitting events for all state changes is mandatory — not optional
+
+## FRONTEND / SDK RULES
+- Use @stellar/stellar-sdk (JavaScript/TypeScript)
+- Simulate before submitting: server.simulateTransaction() for fee estimation + error preview
+- Use Stellar Wallets Kit for browser wallet integration in this project
+- Use Launchtube for managed tx submission (handles fees + sequence numbers)
+- For passkey/smart wallet: use passkey-kit SDK
+- Network passphrase for testnet: "Test SDF Network ; September 2015"
+
+## PROJECT STRUCTURE
+contracts/
+  verifier/           ← RISC Zero Groth16 verifier (adapted)
+  escrow/             ← LoanEscrow settlement contract
+apps/web/             ← Next.js frontend
+zk/guest/             ← RISC Zero guest program
+zk/host/              ← RISC Zero prover service
+.env                  ← secrets (gitignored)
+CLAUDE.md             ← Claude Code instructions
+
+For full Stellar builder playbook, see `.cursor/skills/stellar-builder/SKILL.md`.
