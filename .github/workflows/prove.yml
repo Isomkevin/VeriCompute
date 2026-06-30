@@ -1,0 +1,49 @@
+name: prove
+
+on:
+  workflow_dispatch:
+    inputs:
+      annual_income:
+        description: Annual income
+        required: true
+        default: "80000"
+      total_debt:
+        description: Total debt
+        required: true
+        default: "10000"
+      months_on_time_payments:
+        description: Months on-time
+        required: true
+        default: "36"
+      credit_utilization_pct:
+        description: Utilization %
+        required: true
+        default: "20"
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install RISC Zero
+        run: |
+          curl -L https://risczero.com/install | bash
+          echo "$HOME/.risc0/bin" >> $GITHUB_PATH
+          rzup install
+          rzup install risc0-groth16
+
+      - name: Build and prove
+        run: |
+          cat > /tmp/input.json <<EOF
+          {"annual_income":${{ inputs.annual_income }},"total_debt":${{ inputs.total_debt }},"months_on_time_payments":${{ inputs.months_on_time_payments }},"credit_utilization_pct":${{ inputs.credit_utilization_pct }}}
+          EOF
+          cargo run --release -p vericompute-host -- --input /tmp/input.json --output proof.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: proof-json
+          path: proof.json
