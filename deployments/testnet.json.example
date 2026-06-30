@@ -1,0 +1,8 @@
+{
+  "network": "testnet",
+  "verifier_contract_id": "C...",
+  "escrow_contract_id": "C...",
+  "token_contract_id": "CDLZFC3SYJYDZT7K7VZ75HMSCV4MAZJSDLX4S5HD3NF4AXR7HWPN3NWA",
+  "guest_image_id": "from proof.json image_id field",
+  "initialized": true
+}

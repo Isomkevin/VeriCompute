@@ -14,6 +14,7 @@ IMAGE_ID=$(jq -r .image_id "$PROOF")
 JOURNAL_DIGEST=$(jq -r .journal_digest "$PROOF")
 
 stellar contract invoke \
+  --send=no \
   --network "$NETWORK" \
   --source-account "$IDENTITY" \
   --id "$VERIFIER_ID" \

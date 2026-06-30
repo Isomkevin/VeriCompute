@@ -12,6 +12,8 @@ import {
   ESCROW_CONTRACT_ID,
   NETWORK_PASSPHRASE,
   STELLAR_RPC_URL,
+  TOKEN_CONTRACT_ID,
+  VERIFIER_CONTRACT_ID,
 } from "./stellar";
 import type { ProofResult } from "./types";
 
@@ -29,6 +31,41 @@ function bytesN32ScVal(value: Buffer): xdr.ScVal {
     throw new Error("expected 32-byte value");
   }
   return xdr.ScVal.scvBytes(value);
+}
+
+export async function buildInitEscrowTx(params: {
+  source: string;
+  admin: string;
+  imageIdHex: string;
+}): Promise<string> {
+  if (!VERIFIER_CONTRACT_ID || !ESCROW_CONTRACT_ID) {
+    throw new Error("verifier and escrow contract IDs must be configured");
+  }
+  const server = new rpc.Server(STELLAR_RPC_URL);
+  const account = await server.getAccount(params.source);
+  const contract = new Contract(ESCROW_CONTRACT_ID);
+
+  const tx = new TransactionBuilder(account, {
+    fee: "100000",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      contract.call(
+        "init",
+        Address.fromString(params.admin).toScVal(),
+        Address.fromString(VERIFIER_CONTRACT_ID).toScVal(),
+        bytesN32ScVal(hexToBuffer(params.imageIdHex)),
+        Address.fromString(TOKEN_CONTRACT_ID).toScVal(),
+      ),
+    )
+    .setTimeout(300)
+    .build();
+
+  const sim = await server.simulateTransaction(tx);
+  if (rpc.Api.isSimulationError(sim)) {
+    throw new Error(sim.error);
+  }
+  return rpc.assembleTransaction(tx, sim).build().toXDR();
 }
 
 export async function buildCreateRequestTx(params: {

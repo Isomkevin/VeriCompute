@@ -50,23 +50,47 @@ vericompute/
 
 ## Build / Dev Commands
 
-> Fill these in as the project takes shape — keep this section up to date so future sessions don't have to rediscover commands.
+### Frontend (localhost)
+
+There is **no** root-level `npm run dev`. Always run from `apps/web`:
 
 ```bash
-# Frontend
+cp .env.example apps/web/.env.local
 cd apps/web
-npm install
+npm install   # first time only
 npm run dev
+```
 
-# RISC Zero guest/host (example — adjust to actual crate layout)
-cd zk/host
-cargo run --release -- --input ./examples/sample_input.json
+Windows PowerShell (from repo root):
 
-# Soroban contracts
+```powershell
+Copy-Item ".env.example" "apps/web/.env.local"
+Set-Location apps/web
+npm run dev
+```
+
+Open http://localhost:3000 and http://localhost:3000/demo. Contract IDs in `.env.local` are optional for UI-only browsing.
+
+### RISC Zero prover (WSL/Linux)
+
+```bash
+cargo run --release -p vericompute-host \
+  -- --input zk/host/examples/sample_input.json \
+  --output proof.json
+
+# Optional HTTP server for Windows Next.js (set PROVER_SERVICE_URL=http://localhost:8080)
+cargo run --release -p vericompute-host -- --serve 0.0.0.0:8080
+```
+
+### Soroban contracts
+
+```bash
 cd contracts/escrow
 stellar contract build
 stellar contract deploy --network testnet --source <account> --wasm target/wasm32-unknown-unknown/release/escrow.wasm
 ```
+
+Full operator workflow: root `README.md` → [Quick start](README.md#quick-start).
 
 ## Working Agreements
 

@@ -30,6 +30,7 @@ Use these instructions for all Copilot-assisted edits in this repository.
 
 ## Repo navigation
 
+- **Local frontend:** `cp .env.example apps/web/.env.local` then `cd apps/web && npm run dev` → http://localhost:3000 (no root-level `dev` script)
 - Cursor Soroban rule file: `.cursor/rules/stellar.mdc`
 - Stellar builder playbook: `.cursor/skills/stellar-builder/SKILL.md`
 

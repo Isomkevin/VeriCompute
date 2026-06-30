@@ -9,7 +9,7 @@ DEPLOYMENTS="$ROOT/deployments/${NETWORK}.json"
 mkdir -p "$(dirname "$DEPLOYMENTS")"
 "$ROOT/scripts/vendor-verifier.sh"
 
-VERIFIER_WASM="$ROOT/vendor/stellar-risc0-verifier/target/wasm32v1-none/release/risc_zero_groth16_verifier.wasm"
+VERIFIER_WASM="$ROOT/vendor/stellar-risc0-verifier/target/wasm32v1-none/release/groth16_verifier.wasm"
 ESCROW_WASM="$ROOT/contracts/escrow/target/wasm32v1-none/release/vericompute_escrow.wasm"
 
 echo "Building verifier..."

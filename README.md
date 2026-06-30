@@ -147,7 +147,44 @@ What is *not* claimed: we do not run a full LLM inside the zkVM (proving time ma
 
 ## Quick start
 
-### Prerequisites
+### Local development (frontend only)
+
+Fastest path to run the UI on **localhost** — no WSL, contracts, or wallet required to browse pages:
+
+```bash
+cp .env.example apps/web/.env.local
+cd apps/web
+npm install
+npm run dev
+```
+
+**Windows (PowerShell)** — run from the repo root:
+
+```powershell
+Copy-Item ".env.example" "apps/web/.env.local"
+Set-Location apps/web
+npm install
+npm run dev
+```
+
+Open:
+
+- [http://localhost:3000](http://localhost:3000) — landing page
+- [http://localhost:3000/demo](http://localhost:3000/demo) — demo flow
+
+> **Important:** `npm run dev` lives in `apps/web`, not the repo root. Running it from the root fails with `Missing script: "dev"`.
+
+Without contract IDs in `.env.local`, the demo shows a **NOT CONFIGURED** banner (expected). Proving and on-chain settlement need the full setup below.
+
+| Goal | What you need |
+|------|----------------|
+| Browse UI locally | Node.js 18+ and steps above |
+| Generate proofs from the demo | WSL2 + RISC Zero + Docker, or `PROVER_SERVICE_URL` pointing at a remote/HTTP prover |
+| Full testnet settlement | Deploy contracts, fill contract IDs in `.env.local`, Freighter on testnet |
+
+See [Remote prover options](#remote-prover-options) if the Next.js app runs on Windows without local WSL proving.
+
+### Prerequisites (full stack)
 
 - **WSL2 (Ubuntu)** recommended on Windows for proving and contract deploy
 - **Docker** (Groth16 proving on x86_64 Linux)
@@ -224,11 +261,9 @@ stellar contract invoke \
 NETWORK=testnet IDENTITY=vericompute ./scripts/verify-proof-cli.sh
 ```
 
-### 6. Frontend
+### 6. Frontend (with testnet contracts)
 
-```bash
-cp .env.example apps/web/.env.local
-```
+If you already ran [Local development (frontend only)](#local-development-frontend-only), skip the install/dev steps and only add contract IDs.
 
 Fill in from `deployments/testnet.json`:
 
@@ -237,13 +272,7 @@ NEXT_PUBLIC_VERIFIER_CONTRACT_ID=<verifier_contract_id>
 NEXT_PUBLIC_ESCROW_CONTRACT_ID=<escrow_contract_id>
 ```
 
-```bash
-cd apps/web
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000/demo](http://localhost:3000/demo). If contract IDs are missing, the UI shows a **NOT CONFIGURED** banner instead of faking on-chain success.
+Restart the dev server after editing `.env.local`. Open [http://localhost:3000/demo](http://localhost:3000/demo). If contract IDs are missing, the UI shows a **NOT CONFIGURED** banner instead of faking on-chain success.
 
 ---
 

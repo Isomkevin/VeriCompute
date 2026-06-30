@@ -11,6 +11,7 @@ vendor/
 # Build outputs
 proof.json
 deployments/*.json
+!deployments/*.example
 apps/web/.next/
 
 # OS / IDE

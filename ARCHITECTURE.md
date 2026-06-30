@@ -39,6 +39,19 @@
 - Talks to the Prover Service and to Stellar via the JS SDK + Stellar Wallets Kit.
 - Responsible for orchestrating the demo flow and rendering the step-by-step pipeline UI.
 
+**Local dev:** the Next.js app is the only component required to browse the UI on localhost. From the repo root:
+
+```bash
+cp .env.example apps/web/.env.local
+cd apps/web && npm install && npm run dev
+```
+
+On Windows PowerShell: `Copy-Item ".env.example" "apps/web/.env.local"` then `cd apps/web; npm install; npm run dev`.
+
+The dev server runs at `http://localhost:3000`. There is no root-level `npm run dev` — scripts live in `apps/web/package.json`.
+
+Without deployed contract IDs, pages render with a **NOT CONFIGURED** banner. `/api/prove` calls the RISC Zero host via WSL subprocess (`PROVER_WSL_REPO_PATH`) or HTTP (`PROVER_SERVICE_URL`).
+
 ### 2.2 RISC Zero Guest Program (`zk/guest`)
 - A Rust crate compiled to a RISC-V ELF that runs inside the zkVM.
 - Input: serialized struct (e.g., `ScoringInput { income, debts, repayment_history, ... }`)
@@ -167,15 +180,26 @@ vericompute/
 
 ## 5. Environment Variables
 
+Copy `.env.example` to `apps/web/.env.local` before running the frontend. See the root [README](README.md#environment-variables) for the full table.
+
 ```
 NEXT_PUBLIC_STELLAR_NETWORK=testnet
 NEXT_PUBLIC_STELLAR_RPC_URL=https://soroban-testnet.stellar.org
 NEXT_PUBLIC_VERIFIER_CONTRACT_ID=<deployed verifier contract address>
 NEXT_PUBLIC_ESCROW_CONTRACT_ID=<deployed escrow contract address>
 PROVER_SERVICE_URL=http://localhost:8080   # if running prover as local service
+PROVER_WSL_REPO_PATH=/mnt/c/.../VeriCompute  # WSL path when proving from Windows Next.js
 ```
 
-## 6. Key Risks & Mitigations
+## 6. Local Development Tiers
+
+| Tier | Command | Result |
+|------|---------|--------|
+| **UI only** | `cd apps/web && npm run dev` | Landing, demo form, pipeline UI at `localhost:3000`; **NOT CONFIGURED** if contract IDs empty |
+| **UI + prove** | Above + WSL host or `PROVER_SERVICE_URL` | `/api/prove` returns real Groth16 receipts |
+| **Full demo** | Above + testnet deploy + Freighter | Wallet-signed escrow settlement on Soroban testnet |
+
+## 7. Key Risks & Mitigations
 
 | Risk | Mitigation |
 |---|---|

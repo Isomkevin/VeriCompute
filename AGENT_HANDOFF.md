@@ -33,3 +33,13 @@ When you stop work, leave the next agent a clean pickup point:
 - If you added required env vars, update `ARCHITECTURE.md` + add to `.env.example` (when it exists).
 - Keep changes small and incremental; avoid large refactors during Phase 0/1.
 
+## Local development (quick reference)
+
+Frontend only (no contracts/WSL):
+
+```bash
+cp .env.example apps/web/.env.local && cd apps/web && npm install && npm run dev
+```
+
+→ http://localhost:3000/demo (shows **NOT CONFIGURED** until contract IDs are set). See root `README.md` → **Local development (frontend only)**.
+
