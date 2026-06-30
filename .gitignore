@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+target/
+vendor/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+proof.json
+deployments/*.json
+apps/web/.next/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# RISC Zero
+zk/methods/target/

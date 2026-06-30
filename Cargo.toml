@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = [
+  "zk/methods",
+  "zk/host",
+  "contracts/escrow",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
