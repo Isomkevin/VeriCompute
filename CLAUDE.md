@@ -21,6 +21,8 @@ This file gives Claude Code (or any agentic coding assistant) the context needed
 2. `ARCHITECTURE.md` — system design, component boundaries, contract interfaces, folder structure
 3. `TASKS.md` — current phase, what's done, what's next
 4. `.cursorrules` — coding conventions and constraints (these apply to Claude too)
+5. `AGENT_HANDOFF.md` — multi-agent handoff rules and non-negotiables
+6. `AGENTS.md` — where each agent reads context from
 
 ## Project Structure (target)
 
@@ -78,6 +80,12 @@ stellar contract deploy --network testnet --source <account> --wasm target/wasm3
   - https://jamesbachini.com/stellar-risc-zero-games/
   - https://developers.stellar.org/docs/build/apps/zk
   - https://skills.stellar.org/ (Stellar agent skills — read these for Soroban/SDK conventions)
+
+## Agent / IDE Skill References
+
+- Cursor Soroban rules: `.cursor/rules/stellar.mdc`
+- Stellar builder playbook: `.cursor/skills/stellar-builder/SKILL.md`
+- VS Code Copilot instructions: `.github/copilot-instructions.md`
 
 ## Current Status
 
