@@ -1,6 +1,6 @@
 # TASKS.md — VeriCompute Build Checklist
 
-**Current Phase:** Phase 4/5 — implementation complete in repo; deploy + live testnet verification pending operator setup
+**Current Phase:** Phase 5 — repo complete; operator runs `./scripts/full-e2e.sh` for live testnet checkpoint
 
 ---
 
@@ -17,15 +17,17 @@
 - [x] Guest program: deterministic scoring in zkVM, fixed 68-byte journal
 - [x] Host/prover: Groth16 CLI + HTTP `--serve`, outputs `proof.json`
 - [x] Vendor script for Nethermind `groth16-verifier`
-- [ ] Deploy verifier to Stellar testnet (requires funded identity + `stellar` CLI in WSL)
-- [ ] CLI verify checkpoint with `scripts/verify-proof-cli.sh`
+- [x] Scripts: `prove.sh`, `verify-proof-cli.sh`, `install-stellar-cli.sh`
+- [ ] Deploy verifier to Stellar testnet (operator: funded identity + `./scripts/full-e2e.sh`)
+- [ ] CLI verify checkpoint succeeded on live testnet
 
 ## Phase 2 — Escrow / Settlement Contract
 
 - [x] `LoanEscrow` interface: `init`, `create_request`, `submit_proof_and_settle`, `set_image_id`
 - [x] Cross-invoke verifier with `(seal, image_id, journal_digest)`
 - [x] Decode score from journal bytes; conditional payout + events
-- [ ] Deploy escrow + `init` on testnet
+- [x] Scripts: `init-escrow.sh`, `fund-sac.sh`, `test-escrow-flow.sh`, `full-e2e.sh`
+- [ ] Deploy escrow + `init` on testnet (via `full-e2e.sh`)
 - [ ] CLI e2e: create request → submit proof → confirm payout paths
 
 ## Phase 3 — Credit Scoring Guest
@@ -40,15 +42,17 @@
 - [x] `ScoringForm` with synthetic data badge
 - [x] `/api/prove` (WSL subprocess or `PROVER_SERVICE_URL`)
 - [x] `PipelineVisualizer`, `ResultPanel`, demo + landing + how-it-works pages
-- [x] Soroban tx build/sign helpers for escrow calls
-- [x] NOT CONFIGURED banner when contract IDs missing
+- [x] Soroban tx build/sign helpers (`buildInitEscrowTx`, create, submit)
+- [x] NOT CONFIGURED banner + escrow init / SAC funding guidance on demo page
+- [x] `sync-env-from-deployments.sh` for `.env.local`
 
 ## Phase 5 — Polish, Docs, Submission
 
-- [x] README with setup, honesty section, remote prover workflow
+- [x] README with setup, honesty section, remote prover workflow, full e2e script
 - [x] GitHub Actions `prove.yml` for remote proving
-- [ ] Record demo video
-- [ ] Final testnet deploy addresses committed to `deployments/testnet.json` (local only)
+- [x] `deployments/testnet.json.example` + gitignore for live deployments
+- [ ] Record demo video (operator)
+- [ ] Live `deployments/testnet.json` after successful testnet run (local only)
 
 ---
 

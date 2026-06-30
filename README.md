@@ -26,6 +26,7 @@ Credit scoring is the flagship demo. The scoring logic lives in a swappable modu
 - [Remote prover options](#remote-prover-options)
 - [Demo video script (~2 min)](#demo-video-script-2-min)
 - [Hackathon alignment](#hackathon-alignment)
+- [Roadmap: hackathon → startup](#roadmap-hackathon--startup)
 - [References](#references)
 
 ---
@@ -140,7 +141,7 @@ What is *not* claimed: we do not run a full LLM inside the zkVM (proving time ma
 | `zk/host` | Groth16 prover CLI and optional HTTP server (`POST /prove`) |
 | `vendor/stellar-risc0-verifier` | Vendored Nethermind Groth16 verifier (via script) |
 | `contracts/escrow` | `LoanEscrow` — fund lock, verify, conditional payout |
-| `scripts/` | WSL setup, vendor, deploy, on-chain verify checkpoint |
+| `scripts/` | WSL setup, vendor, deploy, prove, init, fund SAC, sync env, full e2e |
 | `deployments/testnet.json` | Written by deploy script (local; not committed with secrets) |
 
 ---
@@ -233,15 +234,20 @@ This writes `deployments/testnet.json` with `verifier_contract_id` and `escrow_c
 
 ### 4. Initialize escrow
 
-Run after deploy and after you have `image_id` from `proof.json`. Use the testnet native XLM [Stellar Asset Contract](https://developers.stellar.org/docs/build/guides/basics/contract-interactions/stellar-asset-contract) (verify current address in Stellar docs if invoke fails):
+Run after deploy and after you have `image_id` from `proof.json`:
+
+```bash
+./scripts/init-escrow.sh
+```
+
+Or manually with the testnet native XLM [Stellar Asset Contract](https://developers.stellar.org/docs/build/guides/basics/contract-interactions/stellar-asset-contract):
 
 ```bash
 VERIFIER_ID=$(jq -r .verifier_contract_id deployments/testnet.json)
 ESCROW_ID=$(jq -r .escrow_contract_id deployments/testnet.json)
 IMAGE_ID=$(jq -r .image_id proof.json)
 ADMIN=$(stellar keys address vericompute)
-# Testnet native XLM SAC — confirm on https://developers.stellar.org if this changes
-TOKEN_ID=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHX2TSBWL
+TOKEN_ID=CDLZFC3SYJYDZT7K7VZ75HMSCV4MAZJSDLX4S5HD3NF4AXR7HWPN3NWA
 
 stellar contract invoke \
   --network testnet \
@@ -255,11 +261,25 @@ stellar contract invoke \
   --token "$TOKEN_ID"
 ```
 
+Before `create_request`, the lender wallet needs SAC token balance (escrow pulls XLM from the SAC, not classic balances):
+
+```bash
+./scripts/fund-sac.sh
+```
+
 ### 5. Verify proof on-chain (CLI checkpoint)
 
 ```bash
 NETWORK=testnet IDENTITY=vericompute ./scripts/verify-proof-cli.sh
 ```
+
+### 5b. Full testnet checkpoint (one script)
+
+```bash
+NETWORK=testnet IDENTITY=vericompute ./scripts/full-e2e.sh
+```
+
+This runs: prove → deploy → verify → init escrow → fund SAC → create request → settle.
 
 ### 6. Frontend (with testnet contracts)
 
@@ -267,12 +287,20 @@ If you already ran [Local development (frontend only)](#local-development-fronte
 
 Fill in from `deployments/testnet.json`:
 
+```bash
+# Optional helper — writes apps/web/.env.local from deployments/testnet.json
+./scripts/sync-env-from-deployments.sh
+```
+
+Or manually:
+
 ```env
 NEXT_PUBLIC_VERIFIER_CONTRACT_ID=<verifier_contract_id>
 NEXT_PUBLIC_ESCROW_CONTRACT_ID=<escrow_contract_id>
+NEXT_PUBLIC_TOKEN_CONTRACT_ID=CDLZFC3SYJYDZT7K7VZ75HMSCV4MAZJSDLX4S5HD3NF4AXR7HWPN3NWA
 ```
 
-Restart the dev server after editing `.env.local`. Open [http://localhost:3000/demo](http://localhost:3000/demo). If contract IDs are missing, the UI shows a **NOT CONFIGURED** banner instead of faking on-chain success.
+Restart the dev server after editing `.env.local`.
 
 ---
 
@@ -359,6 +387,155 @@ Manual workflow [`.github/workflows/prove.yml`](.github/workflows/prove.yml) bui
 
 ---
 
+## Roadmap: hackathon → startup
+
+VeriCompute is designed as a **protocol**, not a one-off demo app. The hackathon proves the core loop — prove, verify on Soroban, settle from escrow. The path to a real product runs through sharper vertical focus, production infrastructure, and a credible marketplace layer.
+
+```mermaid
+timeline
+  title VeriCompute product phases
+  section Now — Hackathon
+    End-to-end testnet demo : Groth16 + LoanEscrow
+    Credit scoring guest : Swappable task module
+  section Phase 1 — Protocol (0–3 mo)
+    Mainnet pilot : Audited contracts
+    Task registry : Multi-guest support
+    Managed prover API : Sub-minute prove SLA
+  section Phase 2 — Product (3–9 mo)
+    First vertical GTM : Lending / fintech APIs
+    Provider marketplace : Fees, SLAs, reputation
+    SDK + webhooks : Integrate without wallet UX
+  section Phase 3 — Platform (9–18 mo)
+    Private conditions : Noir threshold proofs
+    Enterprise tier : Compliance, audit logs
+    Stellar payments scale : USDC settlement volume
+  section Phase 4 — Scale (18+ mo)
+    Verifiable AI marketplace : Many guests, many buyers
+    Partner network : Underwriters, data oracles
+    Optional multi-rollup : Same receipt, other verifiers
+```
+
+### Phase 0 — Hackathon (now)
+
+**Goal:** Prove the trust model works end-to-end on Stellar testnet.
+
+| Deliverable | Status |
+|-------------|--------|
+| RISC Zero guest + Groth16 host | Done |
+| Soroban verifier + `LoanEscrow` | Done |
+| Next.js demo with honest synthetic data | Done |
+| CLI/scripts for prove → deploy → settle | Done |
+| Demo video + judge-ready README | Operator step |
+
+**Exit criteria:** A judge or developer can reproduce proof generation, on-chain verification, and conditional payout without mocked success states.
+
+---
+
+### Phase 1 — Protocol hardening (months 0–3)
+
+**Goal:** Turn the demo into infrastructure others can build on.
+
+| Initiative | Why it matters |
+|------------|----------------|
+| **Contract audit + mainnet pilot** | Real funds require audited verifier/escrow; start with capped TVL and USDC on Stellar |
+| **Task registry contract** | On-chain registry of allowed `image_id`s and settlement templates — one escrow pattern, many guests |
+| **Second guest program** | e.g. eligibility or fraud-rules guest to prove generality beyond credit scoring |
+| **Managed prover service** | Replace local WSL/CI with hosted Groth16 workers (RISC Zero Bonsai or self-hosted fleet); target predictable latency for API callers |
+| **Receipt caching + idempotency** | Same input hash → same proof path; avoid double-settlement |
+
+**Business model (early):** Protocol fee on escrow settlement (bps); optional hosted-prover subscription for integrators.
+
+**Key metric:** Time from `POST /prove` to verified on-chain settlement under 2 minutes for the reference guest.
+
+---
+
+### Phase 2 — Product–market fit (months 3–9)
+
+**Goal:** Win one vertical where verifiable compute has clear ROI.
+
+**Primary wedge — verifiable underwriting for on-chain lending:**
+
+- Lender escrows loan principal; borrower submits financial inputs; scoring provider proves correct model execution; disbursement is automatic if score ≥ threshold.
+- Extends naturally to **invoice factoring**, **trade finance**, and **agentic workflows** that need “prove before pay.”
+
+| Initiative | Why it matters |
+|------------|----------------|
+| **REST + SDK** (`@vericompute/sdk`) | Lenders integrate without running a prover or parsing Soroban XDR |
+| **Provider marketplace UI** | List providers, fees, latency SLAs, and historical verification rate |
+| **Wallet-optional flows** | Server-signed or session-based signing for B2B; keep Freighter for power users |
+| **Real input pipelines** | Plaid/bank-statement hashes committed as `input_hash` (data stays off-chain; zkVM proves model ran on committed input) |
+| **Observability** | Dashboard: proofs submitted, verify success rate, settlement outcomes, Stellar Expert deep links |
+
+**Business model:** SaaS platform fee + per-proof prover margin + escrow settlement bps.
+
+**Key metrics:** 3 design-partner lenders; verified escrow volume; under 1% proof verification failure rate (excluding user error).
+
+---
+
+### Phase 3 — Platform (months 9–18)
+
+**Goal:** Become the default “verify compute, then pay” layer for Stellar-native fintech and AI agents.
+
+| Initiative | Why it matters |
+|------------|----------------|
+| **Private threshold proofs (Noir / UltraHonk)** | Prove `score ≥ threshold` without revealing raw score on-chain — combines RISC Zero execution proof with privacy for competitive underwriting |
+| **Composable escrow templates** | Split payouts (provider fee, lender, borrower, protocol treasury); support USDC and other Stellar assets |
+| **Compliance & audit trail** | Immutable event index, export for regulators; optional KYC gate on `create_request` (off-chain attestations bound to addresses) |
+| **Enterprise SLA tier** | Dedicated provers, priority verification, support contract |
+| **Guest CI/CD** | Signed guest builds, semver `image_id` promotion, staging vs production registries |
+
+**Business model:** Enterprise contracts; revenue share with scoring/model providers in the marketplace.
+
+**Key metrics:** Monthly verified settlement volume; number of registered guest programs; enterprise logos.
+
+---
+
+### Phase 4 — Scale (months 18+)
+
+**Goal:** Verifiable AI inference marketplace — any deterministic task, many buyers and providers.
+
+| Initiative | Why it matters |
+|------------|----------------|
+| **Catalog of verified tasks** | Credit, fraud, KYC eligibility, content policy, pricing engines — each a pinned `image_id` |
+| **Cross-ecosystem receipts** | Same RISC Zero receipt format; verifier deployments on other chains that support Groth16/RISC Zero (Stellar remains settlement hub if USDC + speed win) |
+| **Larger guests via recursion / continuations** | RISC Zero continuations or decomposed pipelines for bigger models without proving full LLM forward passes |
+| **Agent integrations** | AI agents escrow payment, call provider API, verify receipt before releasing funds — composable with MCP/tooling ecosystems |
+| **Insurance & dispute layer** | Optional challenge window, bonded providers, slashing for invalid proofs |
+
+**Vision:** **“Stripe for verifiable compute”** — requesters specify program + input hash; providers compete on price and latency; settlement is trustless on Stellar.
+
+---
+
+### What we are building long-term
+
+| Layer | Hackathon today | Startup target |
+|-------|-----------------|----------------|
+| **Trust** | Groth16 receipt + `image_id` check | Same, plus optional private condition proofs |
+| **Settlement** | Single `LoanEscrow` on testnet | Template library + USDC mainnet volume |
+| **Compute** | Local/WSL prover, rules-based guest | Hosted prover network + provider marketplace |
+| **Integration** | Demo UI + scripts | SDK, API, webhooks, partner dashboards |
+| **Go-to-market** | Credit scoring story | Lending first; expand to fraud, eligibility, agents |
+
+---
+
+### Risks and how we address them
+
+| Risk | Mitigation |
+|------|------------|
+| Proving too slow for large models | Commit to distilled/deterministic guests; continuations; never claim full LLM-in-zkVM for v1 |
+| Soroban verifier churn | Pin vendored verifier rev; monitor Nethermind/Stellar upgrades; budget audit cycles |
+| Chicken-and-egg (providers vs requesters) | Design-partner lenders first; subsidize early prover capacity |
+| Regulatory (credit data) | Input hashes on-chain, raw PII off-chain; partner with licensed underwriters |
+| Commoditization | Moat = escrow + marketplace + compliance tooling + Stellar USDC rails, not the zkVM alone |
+
+---
+
+### How to follow along
+
+This roadmap will be tracked in [`TASKS.md`](TASKS.md) (engineering) and updated as phases ship. Post-hackathon priorities: **mainnet pilot**, **task registry**, **hosted prover API**.
+
+---
+
 ## References
 
 - [Nethermind `stellar-risc0-verifier`](https://github.com/NethermindEth/stellar-risc0-verifier)
@@ -374,3 +551,4 @@ Manual workflow [`.github/workflows/prove.yml`](.github/workflows/prove.yml) bui
 - [`PRD.md`](PRD.md) — product requirements and user flows
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — component boundaries and data flow
 - [`TASKS.md`](TASKS.md) — build phases and checklist
+- [Roadmap](#roadmap-hackathon--startup) — hackathon → startup phases (this document)

@@ -27,6 +27,9 @@ echo "==> Step 4: Verify proof on-chain (verifier only)"
 echo "==> Step 5: Initialize escrow"
 "$ROOT/scripts/init-escrow.sh"
 
+echo "==> Step 5b: Fund SAC token balance for lender transfers"
+"$ROOT/scripts/fund-sac.sh"
+
 echo "==> Step 6: Escrow create + settle"
 "$ROOT/scripts/test-escrow-flow.sh"
 

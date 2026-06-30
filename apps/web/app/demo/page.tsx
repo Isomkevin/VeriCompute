@@ -187,7 +187,15 @@ export default function DemoPage() {
           {notConfigured && (
             <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
               <strong>NOT CONFIGURED:</strong> Set contract IDs in <code>.env.local</code> after
-              deploying to testnet. Proving still works; settlement is disabled until configured.
+              deploying to testnet (run <code>./scripts/sync-env-from-deployments.sh</code>).
+              Proving still works; settlement is disabled until configured.
+            </div>
+          )}
+          {CONTRACTS_CONFIGURED && (
+            <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+              <strong>Before settlement:</strong> Escrow must be initialized with your guest{" "}
+              <code>image_id</code> (<code>./scripts/init-escrow.sh</code>) and your wallet needs
+              SAC XLM balance (<code>./scripts/fund-sac.sh</code>).
             </div>
           )}
           <ScoringForm onSubmit={runDemo} disabled={busy} />

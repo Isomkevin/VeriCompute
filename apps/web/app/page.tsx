@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RoadmapSection } from "@/components/RoadmapSection";
 import { WalletConnect } from "@/components/WalletConnect";
 
 export default function HomePage() {
@@ -6,7 +7,15 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
         <span className="text-lg font-semibold tracking-tight">VeriCompute</span>
-        <WalletConnect />
+        <nav className="flex items-center gap-4">
+          <Link
+            href="#roadmap"
+            className="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 sm:inline"
+          >
+            Roadmap
+          </Link>
+          <WalletConnect />
+        </nav>
       </header>
 
       <main className="mx-auto max-w-5xl px-6 pb-20 pt-10">
@@ -36,8 +45,16 @@ export default function HomePage() {
             >
               How it works
             </Link>
+            <Link
+              href="#roadmap"
+              className="rounded-xl border border-zinc-300 px-5 py-3 font-medium hover:bg-zinc-50"
+            >
+              Roadmap
+            </Link>
           </div>
         </section>
+
+        <RoadmapSection />
       </main>
     </div>
   );

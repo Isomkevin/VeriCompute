@@ -19,6 +19,8 @@ SCORE=$(jq -r .score "$PROOF")
 THRESHOLD="${THRESHOLD:-600}"
 
 echo "Creating loan request (threshold=$THRESHOLD, score from proof=$SCORE)..."
+"$ROOT/scripts/fund-sac.sh" 2>/dev/null || true
+
 REQUEST_ID=$(stellar contract invoke \
   --network "$NETWORK" \
   --source-account "$IDENTITY" \
