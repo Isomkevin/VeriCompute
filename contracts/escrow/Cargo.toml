@@ -1,0 +1,15 @@
+[package]
+name = "vericompute-escrow"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = "25.1.0"
+
+[dev-dependencies]
+soroban-sdk = { version = "25.1.0", features = ["testutils"] }
