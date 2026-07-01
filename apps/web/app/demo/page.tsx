@@ -174,37 +174,144 @@ export default function DemoPage() {
   }, [notConfigured]);
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link href="/" className="font-semibold">
-          VeriCompute
-        </Link>
-        <WalletConnect />
-      </header>
+    <div className="relative min-h-screen bg-black/90 text-zinc-100">
+      {/* Ambient glow background */}
+      <div
+        className="glow-orb -top-32 left-1/2 h-[500px] w-[700px] -translate-x-1/2 bg-indigo-600/20"
+        aria-hidden
+      />
+      <div
+        className="glow-orb top-40 -right-32 h-[300px] w-[400px] bg-violet-600/15"
+        aria-hidden
+      />
+      <div
+        className="glow-orb top-60 -left-32 h-[250px] w-[350px] bg-cyan-600/10"
+        aria-hidden
+      />
 
-      <main className="mx-auto grid max-w-6xl gap-8 px-6 pb-16 lg:grid-cols-2">
-        <div className="space-y-6">
+      <div className="relative mx-auto max-w-7xl px-6 py-12">
+        {/* Header */}
+        <header className="mb-12 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold text-gradient">
+            VeriCompute
+          </Link>
+          <WalletConnect />
+        </header>
+
+        {/* Hero Section */}
+        <div className="mb-16 text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-sm backdrop-blur-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-zinc-300">Live Demo — Testnet</span>
+          </div>
+
+          <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
+            <span className="text-gradient">Verified Credit Scoring</span>
+            <br />
+            <span className="text-white">On-chain Settlement</span>
+          </h1>
+
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400">
+            Submit synthetic applicant data, generate a zero-knowledge proof, and settle on Stellar.
+            No proof, no payment.
+          </p>
+        </div>
+
+        {/* Config warnings */}
+        <div className="mb-8 space-y-4">
           {notConfigured && (
-            <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-              <strong>NOT CONFIGURED:</strong> Set contract IDs in <code>.env.local</code> after
-              deploying to testnet (run <code>./scripts/sync-env-from-deployments.sh</code>).
-              Proving still works; settlement is disabled until configured.
+            <div className="rounded-xl border border-amber-300 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+              <strong>NOT CONFIGURED:</strong> Set contract IDs in{" "}
+              <code>.env.local</code> after deploying to testnet. Proving still works locally.
             </div>
           )}
           {CONTRACTS_CONFIGURED && (
-            <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+            <div className="rounded-xl border border-sky-300 bg-sky-500/10 px-4 py-3 text-sm text-sky-300">
               <strong>Before settlement:</strong> Escrow must be initialized with your guest{" "}
-              <code>image_id</code> (<code>./scripts/init-escrow.sh</code>) and your wallet needs
-              SAC XLM balance (<code>./scripts/fund-sac.sh</code>).
+              <code>image_id</code> and your wallet needs SAC XLM balance.
             </div>
           )}
-          <ScoringForm onSubmit={runDemo} disabled={busy} />
         </div>
-        <div className="space-y-6">
-          <PipelineVisualizer steps={steps} elapsedSeconds={elapsed} />
-          <ResultPanel result={result} error={error} />
+
+        {/* Main Content Grid */}
+        <main className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+          {/* Left Column: Form & Pipeline */}
+          <div className="space-y-8">
+            <div className="section-reveal">
+              <ScoringForm onSubmit={runDemo} disabled={busy} />
+            </div>
+
+            <div className="section-reveal">
+              <PipelineVisualizer steps={steps} elapsedSeconds={elapsed} />
+            </div>
+          </div>
+
+          {/* Right Column: Results */}
+          <div className="section-reveal">
+            <ResultPanel result={result} error={error} />
+          </div>
+        </main>
+
+        {/* Pipeline Visual Footer */}
+        <div className="mx-auto mt-20 max-w-4xl animate-float">
+          <div className="glass-card rounded-2xl p-6 sm:p-8">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="font-mono text-xs uppercase tracking-wider text-zinc-500">
+                Proof → Verify → Settle
+              </span>
+              <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs text-emerald-400">
+                end-to-end
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {[
+                { label: "Input", sub: "Task + data", icon: "→" },
+                { label: "RISC Zero", sub: "zkVM prove", icon: "⚡" },
+                { label: "Groth16", sub: "Receipt", icon: "✓" },
+                { label: "Soroban", sub: "Verify", icon: "⛓" },
+                { label: "Escrow", sub: "Settle", icon: "$" },
+              ].map((step, i) => (
+                <div key={step.label} className="flex flex-1 items-center gap-3 sm:flex-col sm:gap-2">
+                  <div
+                    className={`flex h-14 w-full flex-col items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 sm:h-20 ${
+                      i === 1 ? "border-indigo-500/30 bg-indigo-500/10 animate-flow-pulse" : ""
+                    }`}
+                    style={{ animationDelay: `${i * 0.3}s` }}
+                  >
+                    <span className="text-lg">{step.icon}</span>
+                    <span className="mt-1 text-sm font-semibold text-white">{step.label}</span>
+                    <span className="text-xs text-zinc-500">{step.sub}</span>
+                  </div>
+                  {i < 4 && (
+                    <svg
+                      className="hidden h-4 w-4 shrink-0 text-zinc-600 sm:block"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      aria-hidden
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-lg border border-white/[0.06] bg-black/30 p-4 font-mono text-xs leading-relaxed text-zinc-400">
+              <span className="text-indigo-400">receipt</span>
+              {" · seal + journal_digest + image_id → "}
+              <span className="text-violet-400">Groth16Verifier.verify()</span>
+              {" → "}
+              <span className="text-emerald-400">LoanEscrow.submit_proof_and_settle()</span>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
