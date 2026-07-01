@@ -16,7 +16,12 @@ function ensureKit() {
   }
 }
 
-export function WalletConnect() {
+interface WalletConnectProps {
+  variant?: "light" | "dark";
+}
+
+export function WalletConnect({ variant = "light" }: WalletConnectProps) {
+  const isDark = variant === "dark";
   const [address, setAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,13 +62,23 @@ export function WalletConnect() {
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       {address ? (
         <>
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm text-emerald-900">
+          <span
+            className={
+              isDark
+                ? "rounded-full bg-emerald-500/10 px-3 py-1 text-sm text-emerald-400"
+                : "rounded-full bg-emerald-100 px-3 py-1 text-sm text-emerald-900"
+            }
+          >
             {address.slice(0, 4)}…{address.slice(-4)}
           </span>
           <button
             type="button"
             onClick={disconnect}
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            className={
+              isDark
+                ? "rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300 hover:bg-white/[0.06]"
+                : "rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50"
+            }
           >
             Disconnect
           </button>
@@ -72,12 +87,18 @@ export function WalletConnect() {
         <button
           type="button"
           onClick={connect}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+          className={
+            isDark
+              ? "rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-sm font-medium text-indigo-300 hover:bg-indigo-500/20"
+              : "rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+          }
         >
           Connect wallet (testnet)
         </button>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className={`text-sm ${isDark ? "text-red-400" : "text-red-600"}`}>{error}</p>
+      )}
     </div>
   );
 }

@@ -1,61 +1,30 @@
-import Link from "next/link";
+import { LandingNav } from "@/components/landing/LandingNav";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { TrustBar } from "@/components/landing/TrustBar";
+import { ProblemSolutionSection } from "@/components/landing/ProblemSolutionSection";
+import { FlowSection } from "@/components/landing/FlowSection";
+import { UseCasesSection } from "@/components/landing/UseCasesSection";
+import { CTASection } from "@/components/landing/CTASection";
+import { LandingFooter } from "@/components/landing/LandingFooter";
 import { RoadmapSection } from "@/components/RoadmapSection";
-import { WalletConnect } from "@/components/WalletConnect";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
-        <span className="text-lg font-semibold tracking-tight">VeriCompute</span>
-        <nav className="flex items-center gap-4">
-          <Link
-            href="#roadmap"
-            className="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 sm:inline"
-          >
-            Roadmap
-          </Link>
-          <WalletConnect />
-        </nav>
-      </header>
-
-      <main className="mx-auto max-w-5xl px-6 pb-20 pt-10">
-        <section className="max-w-3xl">
-          <p className="text-sm font-medium uppercase tracking-wide text-indigo-600">
-            Stellar Hacks — Real-World ZK
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-zinc-900 sm:text-5xl">
-            Pay for compute. Only pay if you can prove it ran correctly.
-          </h1>
-          <p className="mt-5 text-lg leading-8 text-zinc-600">
-            VeriCompute is a general protocol for verifiable deterministic compute with
-            conditional settlement on Stellar. The flagship demo runs a rules-based credit score
-            inside a RISC Zero zkVM, verifies the Groth16 receipt on Soroban, and releases escrow
-            funds only when verification succeeds.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/demo"
-              className="rounded-xl bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-500"
-            >
-              Run the demo
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="rounded-xl border border-zinc-300 px-5 py-3 font-medium hover:bg-zinc-50"
-            >
-              How it works
-            </Link>
-            <Link
-              href="#roadmap"
-              className="rounded-xl border border-zinc-300 px-5 py-3 font-medium hover:bg-zinc-50"
-            >
-              Roadmap
-            </Link>
-          </div>
-        </section>
-
-        <RoadmapSection />
-      </main>
+    <div className="relative min-h-screen overflow-x-hidden bg-[#060608] text-white">
+      <div className="landing-grid pointer-events-none fixed inset-0 z-0" aria-hidden />
+      <div className="relative z-10">
+        <LandingNav />
+        <HeroSection />
+        <TrustBar />
+        <ProblemSolutionSection />
+        <FlowSection />
+        <UseCasesSection />
+        <div className="mx-auto max-w-6xl px-6">
+          <RoadmapSection />
+        </div>
+        <CTASection />
+        <LandingFooter />
+      </div>
     </div>
   );
 }

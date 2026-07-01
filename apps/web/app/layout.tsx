@@ -13,8 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VeriCompute",
-  description: "Verifiable compute with conditional settlement on Stellar",
+  title: "VeriCompute — Verifiable Compute on Stellar",
+  description:
+    "Pay for AI inference only when cryptographic proof confirms the exact program ran on your input. RISC Zero zkVM proofs, Soroban on-chain verification, conditional escrow settlement.",
+  openGraph: {
+    title: "VeriCompute — Verifiable Compute on Stellar",
+    description:
+      "Cryptographic receipts from RISC Zero. On-chain verification on Soroban. Escrow that releases payment only when the proof checks out.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
