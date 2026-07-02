@@ -5,6 +5,7 @@
 Today, if you pay someone (or some service) to run an AI inference on your behalf — an LLM call, a fraud-detection model, a credit-scoring model, an image classifier, anything — **you have no way to verify they actually ran the model you agreed on, against the input you provided, to produce the output they're charging you for.**
 
 A provider could:
+
 - Swap in a cheaper, smaller, or worse model and pocket the difference
 - Run the model on different (or stale) inputs
 - Fabricate the output entirely
@@ -71,10 +72,12 @@ This demonstrates: verifiable compute, conditional payment, and a real-world fin
 ## 6. Functional Requirements
 
 ### FR1 — Guest Program (RISC Zero)
+
 - A Rust "guest" program that takes structured input (JSON or serialized struct), runs a deterministic scoring function, and outputs a result + commits input/output hashes to the journal.
 - Must be modular — the scoring logic should live in a clearly separated module so it can be swapped for other use cases later.
 
 ### FR2 — Host / Prover
+
 - A Rust "host" binary (or service) that:
   - Accepts input from the Next.js app (via API route or a small local service)
   - Executes the guest program in the RISC Zero zkVM
@@ -82,11 +85,13 @@ This demonstrates: verifiable compute, conditional payment, and a real-world fin
   - Returns the receipt + public outputs to the frontend/backend
 
 ### FR3 — Soroban Verifier Contract
+
 - Use/adapt the existing RISC Zero Groth16 verifier contract (Nethermind's `stellar-risc0-verifier`).
 - Deployed to Stellar testnet.
 - Exposes a function to verify a receipt against an expected image ID (program identity) and return the verified public outputs.
 
 ### FR4 — Escrow / Settlement Contract
+
 - A Soroban contract that:
   - Holds funds (test tokens or native XLM on testnet)
   - Calls the verifier contract
@@ -95,6 +100,7 @@ This demonstrates: verifiable compute, conditional payment, and a real-world fin
   - Emits events for each step (for frontend to display)
 
 ### FR5 — Next.js Frontend
+
 - App Router, TypeScript, Tailwind.
 - Pages:
   - Landing / explainer page (problem statement, how it works)
@@ -107,6 +113,7 @@ This demonstrates: verifiable compute, conditional payment, and a real-world fin
   - Poll/return transaction status
 
 ### FR6 — Generalization Layer (stretch but architecturally important)
+
 - A simple config/registry describing "available verified compute tasks" (even if only one is implemented for the demo), so the README and code can credibly say "this generalizes beyond credit scoring."
 
 ## 7. Non-Functional Requirements

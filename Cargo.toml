@@ -4,6 +4,7 @@ members = [
   "zk/methods",
   "zk/host",
   "contracts/escrow",
+  "contracts/verifier",
 ]
 
 [profile.release]

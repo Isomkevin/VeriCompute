@@ -16,9 +16,11 @@ export default function HowItWorksPage() {
         <section>
           <h1 className="text-3xl font-semibold tracking-tight">How VeriCompute works</h1>
           <p className="mt-4 text-lg text-zinc-600">
-            A general protocol for verifiable compute and conditional payment. Credit scoring is
-            one instance — the guest program is swappable behind the same proof → verify → settle
-            flow.
+            A general protocol for verifiable compute and conditional payment on Stellar. By leveraging
+            the <span className="font-semibold text-indigo-600">Protocol 26 (Yardstick)</span> upgrades, VeriCompute
+            makes on-chain ZK verification efficient and affordable. Credit scoring is the flagship
+            demonstration — the guest program is modular and can be swapped for any deterministic
+            computation (eligibility, fraud rules, data validation) behind the same proof → verify → settle flow.
           </p>
         </section>
 

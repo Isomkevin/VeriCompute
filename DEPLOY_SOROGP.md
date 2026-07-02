@@ -1,0 +1,68 @@
+# Deploying VeriCompute Contracts via SoroGP (Stellar Online IDE)
+
+This guide walks you through deploying the Soroban contracts for VeriCompute using [SoroGP](https://soroban.stellar.org/), the online Soroban IDE, when local deployment is problematic.
+
+## Contracts Overview
+
+1. **Verifier** – A RISC Zero Groth16 verifier (vendored from Nethermind's `stellar-risc0-verifier`).
+2. **LoanEscrow** – The escrow contract that calls the verifier and manages loan settlements (`contracts/escrow/src/lib.rs`).
+
+**Deployment order matters:** Deploy the Verifier first, then initialize the LoanEscrow with the Verifier's address.
+
+---
+
+## Step‑by‑Step
+
+### Step 1: Deploy the Verifier Contract
+
+1. Open [SoroGP](https://soroban.stellar.org/).
+2. Create a new contract (you can name it `verifier`).
+3. Obtain the Verifier source:
+   - Clone or download the [Nethermind stellar-risc0-verifier](https://github.com/NethermindEth/stellar-risc0-verifier) repository.
+   - Use the `lib.rs` file from that repo (the exact version referenced in `contracts/verifier/README.md` is commit `11b5b2d59143ff9153dfeb62e63fdfcecfaf0016`).
+4. Paste the Verifier `lib.rs` content into the SoroGP editor.
+5. Click **Deploy** to deploy to **Stellar Testnet**.
+6. **Copy the Contract ID (Address)** shown after deployment – you will need this as the `verifier` argument later.
+
+### Step 2: Deploy the LoanEscrow Contract
+
+1. In SoroGP, create another new contract (e.g., name it `loan_escrow`).
+2. Open the local file:
+   ```
+   contracts/escrow/src/lib.rs
+   ```
+3. Copy the entire content of that file and paste it into the SoroGP editor.
+4. Click **Deploy** to deploy to **Stellar Testnet**.
+5. **Copy the Contract ID (Address)** of the deployed LoanEscrow.
+
+### Step 3: Initialize the LoanEscrow Contract
+
+1. In SoroGP, select the deployed `loan_escrow` contract.
+2. Go to the **Interact** / **Call** tab.
+3. Call the `init` function with the following arguments:
+   - `admin`: Your own Stellar wallet address (the account that will manage the contract).
+   - `verifier`: The Contract ID (Address) of the Verifier you deployed in Step 1.
+   - `image_id`: The 32‑byte RISC Zero Image ID of your guest program (as a hex string, e.g., `0x1234...`).
+   - `token`: The address of the token you want to use for loans on Testnet (e.g., a testnet USDC or XLM token contract).
+4. Submit the transaction. If successful, you’ll see a confirmation and the contract is now ready to use.
+
+---
+
+## Quick Reference
+
+| Order | Action | Source | Key Output |
+| :--- | :--- | :--- | :--- |
+| 1 | Deploy Verifier | Nethermind `stellar-risc0-verifier` (`lib.rs`) | `Verifier_Address` |
+| 2 | Deploy LoanEscrow | `contracts/escrow/src/lib.rs` | `Escrow_Address` |
+| 3 | Call `init` | SoroGP Interaction Tab | Success |
+
+---
+
+## Next Steps
+
+- Update your frontend environment variables (`apps/web/.env.local`) with the deployed contract IDs so the Next.js app can interact with them.
+- Test the flow: create a loan request, submit a proof, and verify settlement on the Testnet.
+
+---
+
+> **Note:** This guide assumes you are using the Stellar Testnet. Never use real funds or Mainnet addresses for experimentation.

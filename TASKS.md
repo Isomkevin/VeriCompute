@@ -54,6 +54,13 @@
 - [ ] Record demo video (operator)
 - [ ] Live `deployments/testnet.json` after successful testnet run (local only)
 
+## Phase 6 — The Winning Edge (High Leverage)
+- [ ] **Live Testnet Verification:** Deploy `verifier` and `LoanEscrow` to testnet and verify a real transaction on Stellar Expert.
+- [ ] **Protocol Generalization:** Implement a second "compute task" (e.g., Verifiable Age/ID) in the guest program to prove generality.
+- [ ] **Privacy Hardening:** Ensure raw input is never on-chain; only hashes and proofs are submitted.
+- [ ] **Narrative Shift:** Update README and "How it Works" to frame this as a "Verifiable Compute Protocol" leveraging Protocol 26.
+- [ ] **Noir Stretch:** Implement a private threshold proof to hide the actual score on-chain.
+
 ---
 
 ## Notes / Decisions Log
