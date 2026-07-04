@@ -11,7 +11,14 @@ jobs:
         with:
           targets: wasm32v1-none
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libdbus-1-dev \
+            pkg-config \
+            build-essential
+      - name: Verify pkg-config
+        run: pkg-config --modversion dbus-1
       - run: cargo install --locked stellar-cli
       - run: stellar contract build
       - uses: actions/upload-artifact@v4
