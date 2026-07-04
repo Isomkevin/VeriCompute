@@ -218,6 +218,8 @@ printf 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n' > /etc/resolv.conf
 
 ### 2. Prove locally (checkpoint)
 
+> **Note:** The very first time you generate a proof (either via CLI or through the Next.js UI), `cargo` must compile the RISC Zero guest and host crates. This can take **1-3 minutes**. Subsequent proofs will run much faster.
+
 ```bash
 cargo run --release -p vericompute-host \
   -- --input zk/host/examples/sample_input.json \
@@ -330,7 +332,7 @@ See [`.env.example`](.env.example).
 | `NEXT_PUBLIC_TOKEN_CONTRACT_ID` | SAC used by escrow (optional in UI) |
 | `PROVER_SERVICE_URL` | Remote prover base URL (`POST /prove`) |
 | `PROVER_WSL_REPO_PATH` | WSL path to repo when proving from Windows Next.js |
-| `GUEST_IMAGE_ID` | Guest program identity from `proof.json` |
+| `GUEST_IMAGE_ID` | Guest program identity from `proof.json`. **Note:** Used by `init-escrow.sh`; the UI fetches it dynamically, so leaving it blank in `.env.local` is fine. |
 
 ---
 
@@ -362,15 +364,17 @@ Conceptually, any computation that is **deterministic** and **small enough to pr
 
 ## Remote prover options
 
-Groth16 proving requires Linux x86_64 + Docker in practice. If the Next.js app runs on Windows without WSL proving:
+Groth16 proving requires Linux x86_64 + Docker in practice. If the Next.js app runs on Windows without WSL proving, **or if you are deploying the Next.js frontend to production (e.g. Vercel) where WSL is not available**, you must configure a remote prover.
 
-**Option A — HTTP prover**
+**Option A — HTTP prover (Recommended for Production)**
+
+You can run the prover crate as a standalone HTTP microservice on a Linux server (e.g. AWS EC2, DigitalOcean).
 
 ```bash
 cargo run --release -p vericompute-host -- --serve 0.0.0.0:8080
 ```
 
-Set `PROVER_SERVICE_URL=http://host:8080` in `apps/web/.env.local`.
+Set `PROVER_SERVICE_URL=http://your-server-ip:8080` in `apps/web/.env.local` (or your Vercel environment variables). When this variable is set, the Next.js `/api/prove` route will skip local WSL execution and proxy the request to your remote prover.
 
 **Option B — GitHub Actions**
 

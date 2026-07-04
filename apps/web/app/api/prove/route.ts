@@ -41,7 +41,7 @@ async function proveLocalWsl(input: ScoringInput) {
       "--",
       "bash",
       "-lc",
-      `cd ${REPO_WSL_PATH} && source ~/.cargo/env && export PATH=$HOME/.risc0/bin:$PATH && cargo run --release -p vericompute-host -- --input ${wslInput} --output ${wslOutput}`,
+      `cd ${REPO_WSL_PATH} && export PATH="/home/$(whoami)/.cargo/bin:/home/$(whoami)/.risc0/bin:$PATH" && cargo run --release -p vericompute-host -- --input ${wslInput} --output ${wslOutput}`,
     ], { timeout: 60 * 60 * 1000 });
 
     const raw = await readFile(outputPath, "utf8");
