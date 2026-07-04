@@ -21,6 +21,9 @@ struct Args {
 
     #[arg(long)]
     serve: Option<String>,
+
+    #[arg(long, help = "Print the guest image ID and exit")]
+    print_image_id: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -83,6 +86,11 @@ fn prove_input(input: &ScoringInput) -> Result<ProofJson> {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+
+    if args.print_image_id {
+        println!("{}", hex::encode(GUEST_ID));
+        return Ok(());
+    }
 
     if let Some(addr) = args.serve {
         let app_state = Arc::new(());

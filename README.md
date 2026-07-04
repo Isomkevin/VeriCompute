@@ -226,6 +226,16 @@ cargo run --release -p vericompute-host \
 
 `proof.json` contains `seal`, `image_id`, `journal_digest`, `journal_hex`, and `score`. The bundled sample input scores **512** with the default rules.
 
+### 2b. Generate the Guest Image ID (Optional)
+
+If you only need the `image_id` of the guest program (which is required to initialize the escrow contract so it only accepts proofs from your specific program) without running a full proof, you can run:
+
+```bash
+cargo run --release -p vericompute-host -- --print-image-id
+```
+
+This compiles the guest and prints its unique cryptographic identity (a Merkle root hash).
+
 ### 3. Deploy contracts (testnet)
 
 ```bash
@@ -239,7 +249,7 @@ This writes `deployments/testnet.json` with `verifier_contract_id` and `escrow_c
 
 ### 4. Initialize escrow
 
-Run after deploy and after you have `image_id` from `proof.json`:
+Run after deploy and after you have the guest `image_id` (either generated via the `--print-image-id` flag or extracted from `proof.json`):
 
 ```bash
 ./scripts/init-escrow.sh
