@@ -5,6 +5,7 @@
 > **Stellar Hacks — Real-World ZK** · RISC Zero Groth16 proofs verified on Soroban · Escrow settles only after on-chain verification
 
 **Deployed Contract IDs (Stellar Testnet):**
+
 - **Verifier:** `CDBHFHVWNIOJWAJ7AZDIQOZGUER7WHJDCJVOPDTE67M7FDCWNYSCRBXG`
 - **Escrow:** `CBZ6E6J6EZXSUNFNXWJWEVVLBVKQRLPNV4HE4AHYK7DQWCYDON44HD2T`
 
