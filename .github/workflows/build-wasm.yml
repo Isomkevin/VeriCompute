@@ -1,0 +1,18 @@
+#.github/workflows/build-wasm.yml
+
+name: Build Soroban WASM
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+      - run: cargo install --locked stellar-cli
+      - run: stellar contract build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contract-wasm
+          path: target/wasm32v1-none/release/*.wasm
