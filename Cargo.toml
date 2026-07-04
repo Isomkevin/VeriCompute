@@ -7,6 +7,25 @@ members = [
   "contracts/verifier",
 ]
 
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+soroban-sdk = "25.1.0"
+risc0-interface = { path = "vendor/stellar-risc0-verifier/contracts/interface" }
+ark-bn254 = "=0.4.0"
+ark-ff = "=0.4.2"
+ark-serialize = "=0.4.2"
+ark-ec = "=0.4.2"
+build-utils = { path = "vendor/stellar-risc0-verifier/tools/build-utils" }
+hex = "0.4.3"
+sha2 = "0.10.9"
+serde = "1.0"
+serde_json = "1.0"
+
 [profile.release]
 opt-level = 3
 lto = true
+overflow-checks = true

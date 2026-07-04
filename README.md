@@ -4,6 +4,10 @@
 
 > **Stellar Hacks — Real-World ZK** · RISC Zero Groth16 proofs verified on Soroban · Escrow settles only after on-chain verification
 
+**Deployed Contract IDs (Stellar Testnet):**
+- **Verifier:** `CDBHFHVWNIOJWAJ7AZDIQOZGUER7WHJDCJVOPDTE67M7FDCWNYSCRBXG`
+- **Escrow:** `CBZ6E6J6EZXSUNFNXWJWEVVLBVKQRLPNV4HE4AHYK7DQWCYDON44HD2T`
+
 If you pay someone to run a deterministic computation — credit scoring, eligibility checks, fraud rules, model inference — you currently have to **trust** they used your program on your input. VeriCompute closes that gap: a provider runs your guest program inside the **RISC Zero zkVM**, submits the Groth16 receipt to **Soroban**, and an **escrow contract** releases funds only when verification succeeds.
 
 Credit scoring is the flagship demo. The scoring logic lives in a swappable module behind the same **prove → verify → settle** protocol.
@@ -295,8 +299,8 @@ Fill in from `deployments/testnet.json`:
 Or manually:
 
 ```env
-NEXT_PUBLIC_VERIFIER_CONTRACT_ID=<verifier_contract_id>
-NEXT_PUBLIC_ESCROW_CONTRACT_ID=<escrow_contract_id>
+NEXT_PUBLIC_VERIFIER_CONTRACT_ID=CDBHFHVWNIOJWAJ7AZDIQOZGUER7WHJDCJVOPDTE67M7FDCWNYSCRBXG
+NEXT_PUBLIC_ESCROW_CONTRACT_ID=CBZ6E6J6EZXSUNFNXWJWEVVLBVKQRLPNV4HE4AHYK7DQWCYDON44HD2T
 NEXT_PUBLIC_TOKEN_CONTRACT_ID=CDLZFC3SYJYDZT7K7VZ75HMSCV4MAZJSDLX4S5HD3NF4AXR7HWPN3NWA
 ```
 
