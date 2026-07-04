@@ -10,16 +10,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32v1-none
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libdbus-1-dev \
-            pkg-config \
-            build-essential
-      - name: Verify pkg-config
-        run: pkg-config --modversion dbus-1
-      - run: cargo install --locked stellar-cli
+      - uses: stellar/stellar-cli@v26.0.0   # or check latest release tag on the repo
       - run: stellar contract build
       - uses: actions/upload-artifact@v4
         with:
