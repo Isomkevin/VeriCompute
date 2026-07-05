@@ -1,0 +1,21 @@
+[Unit]
+Description=VeriCompute RISC Zero Prover Microservice
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+# Ensure we run as the user that installed RISC Zero and has Docker access
+User=root
+# Update this to the actual path where VeriCompute was cloned
+WorkingDirectory=/root/VeriCompute
+# Update this path to the correct cargo release path
+ExecStart=/root/.cargo/bin/cargo run --release -p vericompute-host -- --serve 0.0.0.0:8080
+
+Restart=always
+RestartSec=3
+# Environment variables required for RISC Zero to locate its binaries
+Environment="PATH=/root/.risc0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+[Install]
+WantedBy=multi-user.target

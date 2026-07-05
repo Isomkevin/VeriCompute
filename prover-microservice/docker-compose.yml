@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  prover:
+    build:
+      context: ..
+      dockerfile: prover-microservice/Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - RUST_LOG=info

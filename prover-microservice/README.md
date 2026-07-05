@@ -1,85 +1,84 @@
-# VeriCompute Remote Prover Microservice
+# VeriCompute Prover Microservice Deployment
 
-To offload zero-knowledge proof generation from the Next.js frontend (especially for production environments like Vercel), you can run the `vericompute-host` as a standalone HTTP microservice on a remote Linux server (e.g. AWS EC2, DigitalOcean Droplet).
+When you deploy VeriCompute to a production environment (like Vercel), the Next.js API route no longer has access to a local WSL or Docker runtime. Because generating RISC Zero Zero-Knowledge proofs requires compiling and executing STARK-to-SNARK workflows, the prover must be hosted on a dedicated Linux environment.
 
-This directory contains the necessary configuration to easily deploy the prover as a robust `systemd` service on an Ubuntu/Debian server.
+**Architecture:**
+- **Frontend / Next.js:** Hosted on **Vercel**
+- **Prover Microservice:** Hosted on **Render**, **AWS**, or **DigitalOcean** (as a Docker container)
 
-## Server Requirements
+This directory provides true plug-and-play deployments for your prover microservice.
 
-- **OS:** Ubuntu 22.04 LTS (or Debian equivalent)
-- **Architecture:** x86_64 (RISC Zero Groth16 requires x86_64)
-- **Hardware:** At least 8GB RAM and 4+ vCPUs recommended for proving speed.
-- **Network:** Port 8080 open (or behind a reverse proxy like Nginx/Caddy)
+---
 
-> **Important:** The RISC Zero Groth16 prover uses a Docker container under the hood for STARK-to-SNARK conversion, so Docker must be installed on the host machine.
+## ☁️ Method 1: Deploy to Render (Easiest & Plug-n-Play)
 
-## Deployment Instructions
+Render is a fully managed cloud that natively supports Docker builds from GitHub. We have provided a `render.yaml` Blueprint at the root of the repository for 1-click deployments.
 
-### 1. Provision a Server
-Spin up an Ubuntu 22.04 x86_64 instance on your preferred cloud provider. SSH into the server.
+### Steps:
+1. Push your `VeriCompute` repository to a public or private GitHub repository.
+2. Sign in to [Render](https://render.com) and click **New > Blueprint**.
+3. Connect your GitHub repository.
+4. Render will automatically detect the `render.yaml` file and configure the service.
+5. Click **Apply**. Render will build the Docker container and start the HTTP microservice.
 
-### 2. Clone the Repository
-```bash
-git clone https://github.com/your-org/VeriCompute.git
-cd VeriCompute
-```
+**Hardware Note:** Groth16 proving is memory-intensive. The `render.yaml` is configured to use the "Standard" plan (2GB RAM). If your build fails or proves too slowly, consider upgrading to a tier with at least 4GB of RAM.
 
-### 3. Run the Installation Script
-We provide an automated setup script that installs Docker, Rust, the RISC Zero toolchain, and compiles the prover microservice.
+---
 
-```bash
-cd prover-microservice
-chmod +x setup.sh
-./setup.sh
-```
+## ☁️ Method 2: Deploy to AWS EC2 (Highly Scalable)
 
-### 4. Install the Systemd Service
-To ensure the microservice runs in the background, starts on boot, and automatically restarts if it crashes, install the provided `systemd` service.
+For maximum control and cost-efficiency, you can deploy the prover to an AWS EC2 instance using Docker Compose.
 
-```bash
-sudo cp vericompute-prover.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable vericompute-prover.service
-sudo systemctl start vericompute-prover.service
-```
+### Steps:
 
-### 5. Verify the Service
-Check the logs to ensure the server is listening on port 8080:
+**1. Launch an EC2 Instance:**
+- Open the AWS Console and go to **EC2 > Launch Instances**.
+- **OS:** Ubuntu 22.04 LTS (x86_64)
+- **Instance Type:** `t3.medium` or `t3.large` (Requires at least 2 vCPUs and 4GB RAM)
+- **Security Group:** Allow SSH (port 22) and Custom TCP (port 8080) from anywhere (0.0.0.0/0).
+
+**2. Pass the User-Data Script (Automated 1-Click Setup):**
+Scroll down to **Advanced Details > User data** and paste the following bash script. It will automatically install Docker, clone your repository, build the image, and start the server on boot:
 
 ```bash
-sudo systemctl status vericompute-prover.service
-# or view live logs:
-journalctl -u vericompute-prover.service -f
+#!/bin/bash
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+apt-get update
+apt-get install -y git curl
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+# Clone your repository (Replace URL with your repo)
+git clone https://github.com/your-org/VeriCompute.git /opt/VeriCompute
+cd /opt/VeriCompute/prover-microservice
+
+# Build and run the Prover Microservice
+docker compose up -d --build
 ```
 
-## Securing with HTTPS (Optional but Recommended)
-
-For production, do not expose port 8080 directly without TLS. We recommend installing **Caddy** to act as a reverse proxy with automatic SSL:
-
+**3. Test the API:**
+Once the instance completes booting (and Docker finishes the ~3 min build), you can test it by running:
 ```bash
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update
-sudo apt install caddy
+curl -X POST http://<YOUR_EC2_PUBLIC_IP>:8080/prove \
+  -H "Content-Type: application/json" \
+  -d '{"annual_income":60000,"total_debt":2000,"months_on_time_payments":12,"credit_utilization_pct":30}'
 ```
+You should get a JSON response with the `proof` and `image_id`!
 
-Then edit `/etc/caddy/Caddyfile`:
-```
-prover.yourdomain.com {
-    reverse_proxy localhost:8080
-}
-```
-And restart Caddy: `sudo systemctl restart caddy`.
+---
 
-## Connecting the Frontend
+## ⚡ Connecting the Vercel Frontend
 
-Once the service is running, update the `.env.local` or the production environment variables in your frontend deployment (e.g. Vercel):
+Once your microservice is running on Render or AWS, you need to tell your Vercel deployment where it is.
 
-```env
-PROVER_SERVICE_URL=http://<YOUR_SERVER_IP>:8080
-# Or if using HTTPS via Caddy:
-# PROVER_SERVICE_URL=https://prover.yourdomain.com
-```
+1. Go to your VeriCompute project dashboard on **Vercel**.
+2. Navigate to **Settings > Environment Variables**.
+3. Add a new variable:
+   - **Key:** `PROVER_SERVICE_URL`
+   - **Value:** `http://<YOUR_AWS_IP>:8080` (for AWS) OR `https://vericompute-prover.onrender.com` (for Render)
+4. Redeploy your Next.js application.
 
-Now, when users click "Prove in RISC Zero", the frontend will offload the heavy proving computation to your remote microservice.
+Now, whenever a user clicks **"Prove in RISC Zero"** on your Vercel site, the frontend will automatically proxy the generation payload to your dedicated remote microservice instead of trying to run it locally.

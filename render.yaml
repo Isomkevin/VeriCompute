@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: vericompute-prover
+    env: docker
+    dockerfilePath: prover-microservice/Dockerfile
+    dockerContext: .
+    region: ohio
+    plan: standard # Minimum 2GB RAM / 1 CPU recommended for Groth16 proving
+    healthCheckPath: /
+    envVars:
+      - key: RUST_LOG
+        value: info
