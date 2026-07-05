@@ -95,6 +95,7 @@ async fn main() -> Result<()> {
     if let Some(addr) = args.serve {
         let app_state = Arc::new(());
         let app = Router::new()
+            .route("/", axum::routing::get(|| async { "OK" }))
             .route("/prove", post(prove_handler))
             .with_state(app_state);
 

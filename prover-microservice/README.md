@@ -75,8 +75,9 @@ You should get a JSON response with the `proof` and `image_id`!
 Once your microservice is running on Render or AWS, you need to tell your Vercel deployment where it is.
 
 1. Go to your VeriCompute project dashboard on **Vercel**.
-2. Navigate to **Settings > Environment Variables**.
-3. Add a new variable:
+2. Navigate to **Settings > General** and ensure your **Root Directory** is set to `apps/web`.
+3. Navigate to **Settings > Environment Variables**.
+4. Add a new variable:
    - **Key:** `PROVER_SERVICE_URL`
    - **Value:** `http://<YOUR_AWS_IP>:8080` (for AWS) OR `https://vericompute-prover.onrender.com` (for Render)
 4. Redeploy your Next.js application.
